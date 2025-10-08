@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quotation System</title>
+<style>
+body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; }
+
+/* Login Page */
+#loginPage { display:flex; justify-content:center; align-items:center; height:100vh; }
+.login-box { background:#fff; padding:30px 40px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.2); width:350px; text-align:center; }
+.login-box img { width:265px; height:auto; margin-bottom:20px; }
+.login-box input { width:100%; padding:8px 10px; margin:10px 0; border-radius:4px; border:1px solid #ccc; }
+.login-box button { width:100%; padding:10px; background:orange; border:none; border-radius:4px; color:#fff; font-size:16px; cursor:pointer; }
+.login-box button:hover { opacity:0.9; }
+.error { color:red; margin-top:10px; font-size:14px; }
+
+/* Quotation Page */
+#quotationPage { display:none; padding:10px; }
+.topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.topbar .left { display:flex; gap:5px; }
+.topbar button { padding:6px 12px; border:none; border-radius:4px; cursor:pointer; color:#fff; }
+#logoutBtn { background:orange; }
+.addBtn { background:green; }
+.delBtn { background:red; }
+.saveBtn { background:orange; }
+.printBtn { background:blue; }
+
+.page { width:900px; margin:0 auto; padding:15px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.1); box-sizing:border-box; }
+.header img { width:100%; height:auto; }
+h2 { text-align:center; text-decoration:underline; margin:10px 0; }
+
+.info-block { display:flex; justify-content:space-between; font-size:13px; margin-bottom:10px; border:1px solid #000; padding:10px; border-radius:5px; }
+.info-block div { margin:2px 0; }
+
+table { width:100%; border-collapse: collapse; margin-top:10px; font-size:12px; border:1px solid #000; table-layout:fixed; }
+th, td { border:1px solid #000; padding:6px; text-align:left; word-wrap:break-word; }
+td.right { text-align:right; }
+
+.totals { width:300px; margin-left:auto; margin-top:10px; font-size:13px; }
+.totals table { width:100%; border-collapse:collapse; }
+.totals td { padding:5px; }
+.totals .total { font-weight:bold; border-top:2px solid #333; }
+
+.inwords { font-size:13px; margin-top:8px; }
+.sigs { display:flex; justify-content:space-between; margin-top:20px; font-size:13px; }
+.sig { flex:1; margin:0 5px; text-align:center; }
+.sig .line { border-top:1px solid #555; margin-top:20px; }
+
+footer img { width:100%; height:auto; margin-top:10px; }
+
+/* Saved quotations section */
+.saved-section { width:900px; margin:20px auto; padding:15px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+.saved-section h3 { margin-top:0; }
+
+@media print {
+  body { background:#fff; }
+  .topbar, .saved-section { display:none; }
+  table, th, td { border:1px solid #000 !important; }
+  table { page-break-inside: avoid; }
+  th, td { font-size:11px; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage">
+  <div class="login-box">
+    <img src="https://blogger.googleusercontent.com/img/a/AVvXsEhTjLhvvAO5_opg86JaBgKWPwN2ZNDv6cK8p7zPLauTqtGKYBPu2aoyVj-ruhSjj7wrRddeSFCMLnIp4QrZxzkhfBQnl0ZORL9zdejwsI7b-GM8SxB8JMXpG6gA2Dwwy40VypuMGfvTrpdxRVntrROSfUVsJrox7u-7dUkq9zHGa2dUxK-B11gRnA5o3DDG=s16000" alt="Logo">
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <div class="error" id="errorMsg"></div>
+  </div>
+</div>
+
+<!-- QUOTATION PAGE -->
+<div id="quotationPage">
+  <div class="topbar">
+    <div class="left">
+      <button class="addBtn" onclick="addRow()">+ Add Row</button>
+      <button class="delBtn" onclick="deleteLast()">- Delete Last</button>
+      <button class="saveBtn" onclick="saveQuotation()">💾 Save Quotation</button>
+      <button class="printBtn" onclick="printQuotation()">Print</button>
+    </div>
+    <button id="logoutBtn" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="page" id="quotationContent">
+    <div class="header">
+      <img src="https://blogger.googleusercontent.com/img/a/AVvXsEgCmZWqQcbk2IRNklgV6MZgaaS1H6QkcWs4nu5mEmHHX11ptcuQ89dipe9TUX0YNbgey3QwGJvbIST0zPjwcOL4oFM9ZFmD_fjkJJ7Vx95p_Gv91dHMOP0IyZBTqpTPT3yG_RBInHpbqTmNOV-ztng1vxNnPzD_5HhZwQYqYJJQU1TTQj1-5Zp2uJRGxd7S=s16000" alt="Header">
+    </div>
+
+    <h2>PRICE QUOTATION</h2>
+
+    <div class="info-block">
+      <div class="info-left">
+        <div>INV. No: <span class="inv-no"></span></div>
+        <div>Sold To: <span contenteditable="true">Customer Name</span></div>
+        <div>Address: <span contenteditable="true">Customer Address</span></div>
+        <div>Phone: <span contenteditable="true">Customer Phone</span></div>
+        <div>Remarks: <span contenteditable="true">-</span></div>
+      </div>
+      <div class="info-right">
+        <div>Date: <span contenteditable="true" id="invDate"></span></div>
+        <div>Sales Person: <span contenteditable="true">Md. Ripon</span></div>
+        <div>Refar by: <span contenteditable="true">-</span></div>
+      </div>
+    </div>
+
+    <table id="items">
+      <thead>
+        <tr>
+          <th>SL</th>
+          <th>Description</th>
+          <th>Warranty</th>
+          <th>Qty</th>
+          <th>Unit Price</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="serial">1</td>
+          <td contenteditable="true">ZKTeco Biotime 40 Device License</td>
+          <td contenteditable="true">Life Time</td>
+          <td contenteditable="true" class="qty">1</td>
+          <td contenteditable="true" class="unit">89250</td>
+          <td class="right lineTotal">89250</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="totals">
+      <table>
+        <tr><td>Subtotal:</td><td class="right" id="subtotal">0.00 BDT</td></tr>
+        <tr><td>Tax (10%):</td><td class="right" id="taxAmount">0.00 BDT</td></tr>
+        <tr class="total"><td>Grand Total:</td><td class="right" id="grandTotal">0.00 BDT</td></tr>
+      </table>
+    </div>
+
+    <div class="inwords">In Words: <span id="inWords">Zero Taka Only</span></div>
+
+    <div class="sigs">
+      <div class="sig"><div class="line"></div><div>Name, Signature & Mobile No</div></div>
+      <div class="sig"><div class="line"></div><div>Checked By</div></div>
+      <div class="sig"><div class="line"></div><div>Goods Delivery By</div></div>
+      <div class="sig"><div class="line"></div><div>Authorised Signature</div></div>
+    </div>
+  </div>
+
+  <!-- Saved Quotations Section -->
+  <div class="saved-section">
+    <h3>Saved Quotations</h3>
+    <div id="savedQuotations"></div>
+  </div>
+</div>
+
+<script>
+// Default admin user
+let users = [{username:"admin", password:"admin123"}];
+// Load saved quotations from localStorage
+let savedQuotations = JSON.parse(localStorage.getItem("savedQuotations")||"[]");
+
+function login(){
+  const user = document.getElementById("username").value;
+  const pass = document.getElementById("password").value;
+  if(users.find(u=>u.username===user && u.password===pass)){
+    localStorage.setItem("loggedIn","true");
+    localStorage.setItem("user",user);
+    showQuotationPage();
+  } else {
+    document.getElementById("errorMsg").textContent = "Invalid username or password!";
+  }
+}
+
+function logout(){
+  localStorage.removeItem("loggedIn");
+  localStorage.removeItem("user");
+  location.reload();
+}
+
+function showQuotationPage(){
+  document.getElementById("loginPage").style.display="none";
+  document.getElementById("quotationPage").style.display="block";
+  generateInvoiceNo();
+  loadSavedQuotations();
+}
+
+window.onload = function(){
+  if(localStorage.getItem("loggedIn")==="true") showQuotationPage();
+  recalc();
+}
+
+/* Quotation Logic */
+function toNum(v){ return parseFloat(v)||0; }
+
+function addRow(){
+  const tbody=document.querySelector("#items tbody");
+  const row=document.createElement("tr");
+  row.innerHTML=`<td class="serial"></td><td contenteditable="true">New Item</td><td contenteditable="true">No</td><td contenteditable="true" class="qty">0</td><td contenteditable="true" class="unit">0</td><td class="right lineTotal">0</td>`;
+  tbody.appendChild(row);
+  attach(row);
+  recalc();
+}
+
+function deleteLast(){
+  const tbody=document.querySelector("#items tbody");
+  if(tbody.rows.length>0) tbody.deleteRow(tbody.rows.length-1);
+  recalc();
+}
+
+function attach(row){ row.querySelectorAll(".qty,.unit").forEach(i=>i.addEventListener("input",recalc)); }
+document.querySelectorAll("#items tbody tr").forEach(attach);
+
+function recalc(){
+  const rows=document.querySelectorAll("#items tbody tr"); let subtotal=0;
+  rows.forEach((r,i)=>{
+    r.querySelector(".serial").textContent=i+1;
+    const qty=toNum(r.querySelector(".qty").textContent);
+    const unit=toNum(r.querySelector(".unit").textContent);
+    const total=qty*unit;
+    r.querySelector(".lineTotal").textContent=total.toFixed(2);
+    subtotal+=total;
+  });
+  const taxPct=10;
+  const taxAmount=subtotal*taxPct/100;
+  const grand=subtotal+taxAmount;
+  document.getElementById("subtotal").textContent=subtotal.toFixed(2)+" BDT";
+  document.getElementById("taxAmount").textContent=taxAmount.toFixed(2)+" BDT";
+  document.getElementById("grandTotal").textContent=grand.toFixed(2)+" BDT";
+  document.getElementById("inWords").textContent=numToWords(Math.round(grand))+" Taka Only";
+}
+
+function numToWords(num){
+  const a=["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
+  const b=["","", "Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+  if(num===0) return "Zero";
+  function chunk(n){ let s=""; if(n>=100){ s+=a[Math.floor(n/100)]+" Hundred "; n%=100; } if(n>=20){ s+=b[Math.floor(n/10)]+" "+a[n%10]; } else if(n>0){ s+=a[n]; } return s.trim(); }
+  let str=""; const crore=Math.floor(num/10000000); num%=10000000; const lakh=Math.floor(num/100000); num%=100000; const thousand=Math.floor(num/1000); num%=1000; const hundred=num;
+  if(crore) str+=chunk(crore)+" Crore "; if(lakh) str+=chunk(lakh)+" Lakh "; if(thousand) str+=chunk(thousand)+" Thousand "; if(hundred) str+=chunk(hundred);
+  return str.trim();
+}
+
+function generateInvoiceNo(){
+  document.querySelector(".inv-no").textContent = "QTN-DMSHO-" + Math.floor(Math.random()*1000000);
+  document.getElementById("invDate").textContent = new Date().toLocaleDateString();
+}
+
+function saveQuotation(){
+  recalc();
+  const q = document.getElementById("quotationContent").innerHTML;
+  const inv = document.querySelector(".inv-no").textContent;
+  savedQuotations.push({invoice:inv, content:q});
+  localStorage.setItem("savedQuotations", JSON.stringify(savedQuotations));
+  alert("Quotation saved with Invoice: "+inv);
+  generateInvoiceNo();
+  // Reset items table
+  document.querySelector("#items tbody").innerHTML = `<tr>
+          <td class="serial">1</td>
+          <td contenteditable="true">ZKTeco Biotime 40 Device License</td>
+          <td contenteditable="true">Life Time</td>
+          <td contenteditable="true" class="qty">1</td>
+          <td contenteditable="true" class="unit">89250</td>
+          <td class="right lineTotal">89250</td>
+        </tr>`;
+  recalc();
+  loadSavedQuotations();
+}
+
+function loadSavedQuotations(){
+  const container=document.getElementById("savedQuotations");
+  container.innerHTML="";
+  savedQuotations.forEach((q,i)=>{
+    const div = document.createElement("div");
+    div.style.border="1px solid #000";
+    div.style.padding="5px";
+    div.style.margin="5px 0";
+    div.innerHTML = `Invoice No: ${q.invoice} <button onclick="viewQuotation(${i})">View</button>`;
+    container.appendChild(div);
+  });
+}
+
+function viewQuotation(index){
+  const q = savedQuotations[index];
+  if(q) document.getElementById("quotationContent").innerHTML = q.content;
+  // Reattach input listeners
+  document.querySelectorAll("#items tbody tr").forEach(attach);
+  recalc();
+}
+
+function printQuotation(){
+  window.print();
+  document.querySelector("#items tbody").innerHTML = `<tr>
+          <td class="serial">1</td>
+          <td contenteditable="true">ZKTeco Biotime 40 Device License</td>
+          <td contenteditable="true">Life Time</td>
+          <td contenteditable="true" class="qty">1</td>
+          <td contenteditable="true" class="unit">89250</td>
+          <td class="right lineTotal">89250</td>
+        </tr>`;
+  generateInvoiceNo();
+  recalc();
+}
+</script>
+</body>
+</html>
